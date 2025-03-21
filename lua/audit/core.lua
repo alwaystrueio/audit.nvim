@@ -2,6 +2,8 @@ local M = {}
 
 -- Storage for notes
 M.notes = {}
+-- Storage for reviewed sections
+M.reviewed = {}
 
 -- Utility function to get current buffer's relative path
 function M.get_buffer_path()
@@ -80,10 +82,74 @@ function M.add_note()
   end)
 end
 
+-- Mark selected text as reviewed
+function M.toggle_reviewed()
+  local start_line, start_col = unpack(vim.api.nvim_buf_get_mark(0, '<'))
+  local end_line, end_col = unpack(vim.api.nvim_buf_get_mark(0, '>'))
+  
+  -- Adjustments for proper indexing
+  start_line = start_line - 1
+  end_line = end_line - 1
+  
+  -- Get file path
+  local file_path = M.get_buffer_path()
+  if not file_path then return end
+  
+  -- Initialize reviewed sections for this file if needed
+  if not M.reviewed[file_path] then
+    M.reviewed[file_path] = {}
+  end
+  
+  -- Check if selected region already has any reviewed sections
+  local overlap_indices = {}
+  for i, section in ipairs(M.reviewed[file_path]) do
+    -- Check for any overlap
+    if not (end_line < section.start_line or start_line > section.end_line) then
+      table.insert(overlap_indices, i)
+    end
+  end
+  
+  -- If we found overlapping sections, remove them (toggle off)
+  if #overlap_indices > 0 then
+    -- Remove in reverse order to avoid index shifting
+    for i = #overlap_indices, 1, -1 do
+      table.remove(M.reviewed[file_path], overlap_indices[i])
+    end
+    
+    -- Save to file
+    M.save_notes()
+    
+    -- Update UI
+    require('audit.ui').mark_reviewed(0)
+    
+    vim.notify("Removed review marks")
+  else
+    -- No overlap found, add new section (toggle on)
+    table.insert(M.reviewed[file_path], {
+      start_line = start_line,
+      end_line = end_line
+    })
+    
+    -- Save to file
+    M.save_notes()
+    
+    -- Update UI
+    require('audit.ui').mark_reviewed(0)
+    
+    vim.notify("Code marked as reviewed")
+  end
+end
+
+-- Mark selected text as reviewed (deprecated, use toggle_reviewed instead)
+function M.mark_reviewed()
+  M.toggle_reviewed()
+end
+
 -- Save notes to notes.md file
 function M.save_notes()
   local lines = {"# Audit Notes", ""}
   
+  -- Save notes
   for file, file_notes in pairs(M.notes) do
     table.insert(lines, "## " .. file)
     table.insert(lines, "")
@@ -111,6 +177,22 @@ function M.save_notes()
     end
   end
   
+  -- Save reviewed sections
+  table.insert(lines, "# Reviewed Sections")
+  table.insert(lines, "")
+  
+  for file, sections in pairs(M.reviewed) do
+    table.insert(lines, "## " .. file)
+    table.insert(lines, "")
+    
+    for _, section in ipairs(sections) do
+      local line_ref = (section.start_line + 1) .. "-" .. (section.end_line + 1)
+      table.insert(lines, "- Lines " .. line_ref)
+    end
+    
+    table.insert(lines, "")
+  end
+  
   -- Try to write the file, with error handling
   local success, err = pcall(function()
     vim.fn.writefile(lines, "notes.md")
@@ -127,6 +209,7 @@ function M.load_notes()
   
   -- Always initialize the notes structure
   M.notes = {}
+  M.reviewed = {}
   
   -- Return early if the file doesn't exist
   if not vim.fn.filereadable(filename) then
@@ -148,13 +231,36 @@ function M.load_notes()
   local current_section = nil
   local code_block = false
   local code_content = {}
+  local in_reviewed_section = false
   
   for _, line in ipairs(content) do
-    if line:match("^## (.+)$") then
+    if line == "# Reviewed Sections" then
+      in_reviewed_section = true
+      current_file = nil
+    elseif line:match("^# ") then
+      in_reviewed_section = false
+      current_file = nil
+    elseif line:match("^## (.+)$") then
       current_file = line:match("^## (.+)$")
-      M.notes[current_file] = {}
-      current_note = nil
       
+      if in_reviewed_section then
+        M.reviewed[current_file] = {}
+      else
+        M.notes[current_file] = {}
+      end
+      
+      current_note = nil
+    
+    elseif in_reviewed_section and current_file and line:match("^%- Lines (%d+)%-(%d+)$") then
+      local start_line, end_line = line:match("^%- Lines (%d+)%-(%d+)$")
+      if not M.reviewed[current_file] then
+        M.reviewed[current_file] = {}
+      end
+      
+      table.insert(M.reviewed[current_file], {
+        start_line = tonumber(start_line) - 1, -- Convert to 0-indexed
+        end_line = tonumber(end_line) - 1      -- Convert to 0-indexed
+      })
     elseif line:match("^### Note (%d+) %(Lines (%d+)%-(%d+)%)") then
       local note_id, start_line, end_line = line:match("^### Note (%d+) %(Lines (%d+)%-(%d+)%)")
       current_note = {

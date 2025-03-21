@@ -11,6 +11,8 @@ M.load_notes = core.load_notes
 M.save_notes = core.save_notes
 M.delete_note = core.delete_note
 M.mark_notes = ui.mark_notes
+M.mark_reviewed = core.mark_reviewed
+M.toggle_reviewed = core.toggle_reviewed
 M.show_notes_panel = panel.show_notes_panel
 M.sync_panel_changes = panel.sync_panel_changes
 M.close_notes_panel = panel.close_notes_panel
@@ -33,6 +35,7 @@ function M.setup(opts)
   
   -- Set up commands
   vim.api.nvim_create_user_command('AuditAddNote', core.add_note, { range = true })
+  vim.api.nvim_create_user_command('AuditToggleReviewed', core.toggle_reviewed, { range = true })
   vim.api.nvim_create_user_command('AuditDeleteNote', function(opts)
     if not opts.args or opts.args == "" then
       -- No parameter provided - check notes at current cursor line
@@ -86,6 +89,7 @@ function M.setup(opts)
     pattern = '*',
     callback = function()
       ui.mark_notes(0)
+      ui.mark_reviewed(0)
     end
   })
   

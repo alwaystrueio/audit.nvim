@@ -3,6 +3,7 @@ local core = require('audit.core')
 
 -- Namespace for UI elements
 M.ns_id = vim.api.nvim_create_namespace('audit_notes')
+M.review_ns_id = vim.api.nvim_create_namespace('audit_reviewed')
 M.note_marks = {}
 
 -- Set up highlighting
@@ -10,6 +11,7 @@ function M.setup_highlights()
   vim.cmd([[
     highlight default link AuditNote Todo
     highlight default link AuditNoteHighlight CursorLine
+    highlight default link AuditReviewed DiffAdd
   ]])
 end
 
@@ -40,6 +42,23 @@ function M.mark_notes(bufnr)
       
       -- Highlight the line
       vim.api.nvim_buf_add_highlight(bufnr, M.ns_id, "AuditNoteHighlight", line, 0, -1)
+    end
+  end
+end
+
+-- Mark reviewed code sections
+function M.mark_reviewed(bufnr)
+  -- Clear existing review marks
+  vim.api.nvim_buf_clear_namespace(bufnr, M.review_ns_id, 0, -1)
+  
+  local file_path = core.get_buffer_path()
+  -- Skip if file path is nil or reviewed sections for this file don't exist
+  if not file_path or not core.reviewed[file_path] then return end
+  
+  for _, section in ipairs(core.reviewed[file_path]) do
+    for line = section.start_line, section.end_line do
+      -- Add highlight for reviewed line
+      vim.api.nvim_buf_add_highlight(bufnr, M.review_ns_id, "AuditReviewed", line, 0, -1)
     end
   end
 end
