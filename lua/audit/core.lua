@@ -181,4 +181,52 @@ function M.load_notes()
   end
 end
 
+-- Get all notes at the specified line number
+function M.get_notes_at_line(line_number)
+  local file_path = M.get_buffer_path()
+  if not file_path or not M.notes[file_path] then
+    return {}
+  end
+  
+  local notes_at_line = {}
+  for i, note in ipairs(M.notes[file_path]) do
+    if line_number >= note.start_line and line_number <= note.end_line then
+      table.insert(notes_at_line, {id = i, note = note})
+    end
+  end
+  
+  return notes_at_line
+end
+
+-- Delete a note from the current buffer
+function M.delete_note(note_id)
+  local file_path = M.get_buffer_path()
+  if not file_path or not M.notes[file_path] then
+    vim.notify("No notes found for this file", vim.log.levels.WARN)
+    return
+  end
+  
+  -- Check if note_id is valid for this file
+  if note_id <= 0 or note_id > #M.notes[file_path] then
+    vim.notify("Invalid note ID: " .. note_id, vim.log.levels.ERROR)
+    return
+  end
+  
+  -- Remove the specified note
+  table.remove(M.notes[file_path], note_id)
+  
+  -- If no notes left for this file, remove the file entry from notes
+  if #M.notes[file_path] == 0 then
+    M.notes[file_path] = nil
+  end
+  
+  -- Save updated notes to file
+  M.save_notes()
+  
+  -- Update UI
+  require('audit.ui').mark_notes(0)
+  
+  vim.notify("Note " .. note_id .. " deleted")
+end
+
 return M 

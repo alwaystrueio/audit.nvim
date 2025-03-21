@@ -1,4 +1,5 @@
 :AuditAddNote	audit.txt	/*:AuditAddNote*
+:AuditDeleteNote	audit.txt	/*:AuditDeleteNote*
 audit	audit.txt	/*audit*
 audit-features	audit.txt	/*audit-features*
 audit-key-add-note	audit.txt	/*audit-key-add-note*
