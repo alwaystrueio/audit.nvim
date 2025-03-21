@@ -153,7 +153,7 @@ function M.show_notes_panel()
   end
   
   -- Create or update the panel
-  local lines = {"# Notes for current line", ""}
+  local lines = {"# Audit Notes Panel - Use <Leader>as to save changes", ""}
   
   for _, note in ipairs(relevant_notes) do
     table.insert(lines, "## Note " .. note.id)
@@ -176,6 +176,28 @@ function M.show_notes_panel()
   if not M.panel_bufnr or not vim.api.nvim_buf_is_valid(M.panel_bufnr) then
     M.panel_bufnr = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(M.panel_bufnr, 'filetype', 'markdown')
+    
+    -- Make buffer modifiable but not file-backed
+    vim.api.nvim_buf_set_option(M.panel_bufnr, 'modifiable', true)
+    vim.api.nvim_buf_set_option(M.panel_bufnr, 'buftype', 'nofile')
+    
+    -- Store the current file_path and line for the panel
+    M.panel_file_path = file_path
+    M.panel_line = current_line
+    
+    -- Add keymappings for saving changes
+    vim.api.nvim_buf_set_keymap(M.panel_bufnr, 'n', '<Leader>as', 
+      '<cmd>lua require("audit").sync_panel_changes()<CR>', 
+      { noremap = true, silent = true, desc = "Save note changes" })
+    
+    -- Map the common write command to our sync function instead
+    vim.api.nvim_buf_set_keymap(M.panel_bufnr, 'n', ':w<CR>', 
+      '<cmd>lua require("audit").sync_panel_changes()<CR>', 
+      { noremap = true, silent = true })
+  else
+    -- Update stored file path and line
+    M.panel_file_path = file_path
+    M.panel_line = current_line
   end
   
   vim.api.nvim_buf_set_lines(M.panel_bufnr, 0, -1, false, lines)
@@ -194,6 +216,93 @@ function M.show_notes_panel()
     
     -- Go back to original window
     vim.api.nvim_set_current_win(current_winid)
+  end
+end
+
+-- Sync changes from panel to notes data structure
+function M.sync_panel_changes()
+  if not M.panel_bufnr or not vim.api.nvim_buf_is_valid(M.panel_bufnr) then
+    return
+  end
+  
+  -- Get the buffer content
+  local lines = vim.api.nvim_buf_get_lines(M.panel_bufnr, 0, -1, false)
+  
+  -- Parse the buffer content
+  local current_note_id = nil
+  local in_content_section = false
+  local in_code_block = false
+  local content_lines = {}
+  local code_lines = {}
+  local updated_notes = {}
+  
+  for i, line in ipairs(lines) do
+    -- Skip the header
+    if i <= 2 then
+      -- Skip first two lines (header)
+      goto continue
+    end
+    
+    if line:match("^## Note (%d+)") then
+      -- Found a note section
+      current_note_id = tonumber(line:match("^## Note (%d+)"))
+      in_content_section = true
+      content_lines = {}
+      code_lines = {}
+      
+    elseif line == "```" then
+      if in_code_block then
+        -- End of code block
+        in_code_block = false
+        
+        -- Save the note
+        if current_note_id then
+          updated_notes[current_note_id] = {
+            content = table.concat(content_lines, "\n"),
+            code = table.concat(code_lines, "\n")
+          }
+        end
+      else
+        -- Start of code block
+        in_content_section = false
+        in_code_block = true
+      end
+      
+    elseif current_note_id then
+      if in_content_section and line ~= "" then
+        -- Add to content (skip first empty line after the note header)
+        if #content_lines > 0 or line ~= "" then
+          table.insert(content_lines, line)
+        end
+      elseif in_code_block then
+        -- Add to code
+        table.insert(code_lines, line)
+      end
+    end
+    
+    ::continue::
+  end
+  
+  -- Update the notes data structure
+  if M.panel_file_path and M.notes[M.panel_file_path] then
+    local updated = false
+    
+    for note_id, note_data in pairs(updated_notes) do
+      if M.notes[M.panel_file_path][note_id] then
+        M.notes[M.panel_file_path][note_id].content = note_data.content
+        -- We don't update the code as it should remain the original selection
+        updated = true
+      end
+    end
+    
+    if updated then
+      -- Save to file
+      M.save_notes()
+      vim.notify("Audit Notes: Notes updated successfully")
+      
+      -- Update marks
+      M.mark_notes(0)
+    end
   end
 end
 
@@ -330,6 +439,7 @@ function M.setup(opts)
   -- Set up commands
   vim.api.nvim_create_user_command('AuditAddNote', M.add_note, { range = true })
   vim.api.nvim_create_user_command('AuditTogglePanel', M.toggle_notes_panel, {})
+  vim.api.nvim_create_user_command('AuditSyncNotes', M.sync_panel_changes, {})
   
   -- Flag to track if auto panel display is enabled
   M.auto_panel_enabled = true

@@ -9,6 +9,7 @@ A Neovim plugin that enables code auditors to take notes about the code they're 
 - Link notes to specific lines of code
 - Display visual indicators on lines with notes
 - Show relevant notes in a side panel when cursor is on a line with notes
+- Edit notes directly in the panel and save changes to the notes file
 
 ## Installation
 
@@ -40,6 +41,19 @@ Plug 'username/audit.nvim'
 
 - `:AuditAddNote` - Add a note for the selected text (visual mode only)
 - `:AuditTogglePanel` - Toggle the notes panel on/off and enable/disable automatic panel display
+- `:AuditSyncNotes` - Manually sync edited notes from the panel to the notes.md file
+
+### Editing Notes
+
+You can edit notes directly in the notes panel:
+
+1. When a note is displayed in the panel, you can modify its content
+2. Save your changes using one of these methods:
+   - Press `<Leader>as` in the notes panel
+   - Use `:w` in the notes panel
+   - Run `:AuditSyncNotes` from any buffer
+
+Changes to notes are automatically saved to the notes.md file. Note that only the content of notes can be edited; the code snippets remain unchanged to preserve the original references.
 
 ## Configuration
 
