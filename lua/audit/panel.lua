@@ -206,6 +206,9 @@ end
 
 -- Close notes panel
 function M.close_notes_panel()
+  -- Sync changes before closing
+  M.sync_panel_changes()
+  
   if M.panel_winid and vim.api.nvim_win_is_valid(M.panel_winid) then
     vim.api.nvim_win_close(M.panel_winid, true)
     M.panel_winid = nil
@@ -221,13 +224,7 @@ end
 function M.toggle_notes_panel()
   -- Check if panel is currently visible
   if M.panel_winid and vim.api.nvim_win_is_valid(M.panel_winid) then
-    -- If cursor is not in the panel, move to it; otherwise close it
-    if vim.api.nvim_get_current_win() ~= M.panel_winid then
-      vim.api.nvim_set_current_win(M.panel_winid)
-      return
-    end
-    
-    -- Close the panel
+    -- Close the panel regardless of where the cursor is
     M.close_notes_panel()
     
     -- Disable auto-showing panel on cursor move
@@ -299,6 +296,20 @@ function M.setup_autocmds()
     callback = function(event)
       if M.panel_bufnr and event.buf == M.panel_bufnr then
         M.sync_panel_changes()
+      end
+    end
+  })
+  
+  -- Handle :w in the panel buffer
+  vim.api.nvim_create_autocmd('BufWriteCmd', {
+    group = M.auto_panel_augroup,
+    callback = function(event)
+      if M.panel_bufnr and event.buf == M.panel_bufnr then
+        M.sync_panel_changes()
+        vim.notify("Audit Notes: Notes saved")
+        -- Mark the buffer as not modified to clear the 'modified' flag
+        vim.api.nvim_buf_set_option(M.panel_bufnr, 'modified', false)
+        return true -- Prevent the actual file write
       end
     end
   })
