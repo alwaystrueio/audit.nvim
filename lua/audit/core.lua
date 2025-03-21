@@ -54,11 +54,20 @@ function M.add_note()
       M.notes[file_path] = {}
     end
     
+    -- Determine note type based on first character
+    local note_type = "note"
+    if input:sub(1, 1) == "?" then
+      note_type = "question"
+    elseif input:sub(1, 1) == "!" then
+      note_type = "finding"
+    end
+    
     table.insert(M.notes[file_path], {
       start_line = start_line,
       end_line = end_line,
       content = input,
-      code = selected_text
+      code = selected_text,
+      type = note_type
     })
     
     -- Save notes to file
@@ -176,6 +185,15 @@ function M.load_notes()
       
     elseif current_note and current_section == "note" and line ~= "" then
       current_note.content = line
+      
+      -- Determine note type based on first character
+      current_note.type = "note"
+      if line:sub(1, 1) == "?" then
+        current_note.type = "question"
+      elseif line:sub(1, 1) == "!" then
+        current_note.type = "finding"
+      end
+      
       current_section = "after_note"
     end
   end

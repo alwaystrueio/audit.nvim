@@ -24,9 +24,17 @@ function M.mark_notes(bufnr)
   
   for i, note in ipairs(core.notes[file_path]) do
     for line = note.start_line, note.end_line do
+      -- Determine the icon based on note type
+      local icon = "📝"
+      if note.type == "question" then
+        icon = "🤨"
+      elseif note.type == "finding" then
+        icon = "🚨"
+      end
+      
       -- Add virtual text
       vim.api.nvim_buf_set_extmark(bufnr, M.ns_id, line, 0, {
-        virt_text = {{"📝 Note " .. i, "AuditNote"}},
+        virt_text = {{icon .. " " .. i, "AuditNote"}},
         virt_text_pos = "eol",
       })
       

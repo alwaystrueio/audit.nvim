@@ -11,10 +11,14 @@ A Neovim plugin that enables code auditors to take notes about the code they're 
 - [x] Show relevant notes in a side panel when cursor is on a line with notes
 - [x] Edit notes directly in the panel and save changes to the notes file automatically
 - [x] Delete notes from the source code
-- [ ] Use different notes for different things
-    - [ ] Add a "question" note when starting with `?`
-    - [ ] Add a "possible finding" note when starting with `!`
+- [x] Use different icons for different type of notes
+    - [x] Add a "question" note when starting with `?`
+    - [x] Add a "possible finding" note when starting with `!`
     - [x] Add an "info" note when starting with any other symbol
+- [ ] Somehow mark "reviewed" code
+- [ ] Generate structured joint notes
+- [ ] Generate Typst code from notes
+- [ ] Deal with sourcecode changes
 
 ## Installation
 
