@@ -17,7 +17,7 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
 use {
-  'username/audit.nvim',
+  'rober-m/audit.nvim',
   config = function()
     require('audit').setup()
   end
