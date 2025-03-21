@@ -27,7 +27,7 @@ use {
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```vim
-Plug 'username/audit.nvim'
+Plug 'rober-m/audit.nvim'
 ```
 
 ## Usage
@@ -57,52 +57,6 @@ vim.keymap.set('n', '<Leader>at', ':AuditTogglePanel<CR>', { noremap = true, sil
 
 -- Save changes from the panel (when the panel has focus)
 vim.keymap.set('n', '<Leader>as', ':AuditSyncNotes<CR>', { noremap = true, silent = true })
-```
-
-Or in Vim script:
-
-```vim
-" In your vimrc or init.vim
-" Add a note from visual mode
-vnoremap <Leader>an :AuditAddNote<CR>
-
-" Toggle the notes panel
-nnoremap <Leader>at :AuditTogglePanel<CR>
-
-" Save changes from the panel (when the panel has focus)
-nnoremap <Leader>as :AuditSyncNotes<CR>
-```
-
-#### Using with which-key
-
-If you're using [which-key.nvim](https://github.com/folke/which-key.nvim), you can organize these keybindings in a "notes" group:
-
-```lua
--- Setup which-key.nvim with a notes group
-require('which-key').register({
-  n = {
-    name = "Notes", -- group name
-    a = { "<cmd>AuditAddNote<CR>", "Add note" },
-    t = { "<cmd>AuditTogglePanel<CR>", "Toggle notes panel" },
-    s = { "<cmd>AuditSyncNotes<CR>", "Sync notes changes" },
-  }
-}, { prefix = "<leader>" })
-```
-
-This creates a `<Leader>n` group with the following mappings:
-- `<Leader>na` - Add a note (in visual mode)
-- `<Leader>nt` - Toggle the notes panel
-- `<Leader>ns` - Sync notes changes
-
-For visual mode mappings, you can define them separately:
-
-```lua
-require('which-key').register({
-  n = {
-    name = "Notes",
-    a = { "<cmd>AuditAddNote<CR>", "Add note" },
-  }
-}, { prefix = "<leader>", mode = "v" })
 ```
 
 ### Editing Notes
