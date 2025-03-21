@@ -9,6 +9,12 @@ M.ns_id = vim.api.nvim_create_namespace('audit_notes')
 function M.get_buffer_path()
   local buf_name = vim.api.nvim_buf_get_name(0)
   local cwd = vim.fn.getcwd()
+  
+  -- If buffer has no name or is not in the current directory
+  if buf_name == "" or string.len(buf_name) <= string.len(cwd) then
+    return nil
+  end
+  
   return string.sub(buf_name, string.len(cwd) + 2)
 end
 
@@ -98,7 +104,14 @@ function M.save_notes()
     end
   end
   
-  vim.fn.writefile(lines, "notes.md")
+  -- Try to write the file, with error handling
+  local success, err = pcall(function()
+    vim.fn.writefile(lines, "notes.md")
+  end)
+  
+  if not success then
+    vim.notify("Error writing notes.md: " .. tostring(err), vim.log.levels.ERROR)
+  end
 end
 
 -- Add visual marks to lines with notes
@@ -107,7 +120,8 @@ function M.mark_notes(bufnr)
   vim.api.nvim_buf_clear_namespace(bufnr, M.ns_id, 0, -1)
   
   local file_path = M.get_buffer_path()
-  if not M.notes[file_path] then return end
+  -- Skip if file path is nil or notes for this file don't exist
+  if not file_path or not M.notes[file_path] then return end
   
   for i, note in ipairs(M.notes[file_path]) do
     for line = note.start_line, note.end_line do
@@ -128,7 +142,16 @@ function M.show_notes_panel()
   local current_line = vim.api.nvim_win_get_cursor(0)[1] - 1
   local file_path = M.get_buffer_path()
   
-  if not M.notes[file_path] then return end
+  -- Skip if file path is nil or notes for this file don't exist
+  if not file_path or not M.notes[file_path] then 
+    -- Close panel if open when there are no notes
+    if M.panel_bufnr and vim.api.nvim_buf_is_valid(M.panel_bufnr) then
+      vim.api.nvim_buf_delete(M.panel_bufnr, { force = true })
+      M.panel_bufnr = nil
+      M.panel_winid = nil
+    end
+    return 
+  end
   
   -- Find notes for the current line
   local relevant_notes = {}
@@ -355,12 +378,22 @@ end
 -- Load notes from file
 function M.load_notes()
   local filename = "notes.md"
+  
+  -- Always initialize the notes structure
+  M.notes = {}
+  
+  -- Return early if the file doesn't exist
   if not vim.fn.filereadable(filename) then
     return
   end
   
-  local content = vim.fn.readfile(filename)
-  if #content == 0 then
+  -- Use pcall to safely read the file
+  local success, content = pcall(function()
+    return vim.fn.readfile(filename)
+  end)
+  
+  -- If reading failed or content is empty, return
+  if not success or not content or #content == 0 then
     return
   end
   
@@ -369,8 +402,6 @@ function M.load_notes()
   local current_section = nil
   local code_block = false
   local code_content = {}
-  
-  M.notes = {}
   
   for _, line in ipairs(content) do
     if line:match("^## (.+)$") then
@@ -423,8 +454,13 @@ function M.setup(opts)
     highlight default link AuditNoteHighlight CursorLine
   ]])
   
-  -- Load existing notes
-  M.load_notes()
+  -- Load existing notes - wrapped in pcall for safety
+  local success, err = pcall(M.load_notes)
+  if not success then
+    vim.notify("Error loading notes: " .. tostring(err), vim.log.levels.WARN)
+    -- Ensure M.notes is initialized even if load_notes fails
+    M.notes = {}
+  end
   
   -- Set up commands
   vim.api.nvim_create_user_command('AuditAddNote', M.add_note, { range = true })
