@@ -153,7 +153,7 @@ function M.show_notes_panel()
   end
   
   -- Create or update the panel
-  local lines = {"# Audit Notes Panel - Use <Leader>as to save changes", ""}
+  local lines = {"# Audit Notes Panel", ""}
   
   for _, note in ipairs(relevant_notes) do
     table.insert(lines, "## Note " .. note.id)
@@ -184,16 +184,6 @@ function M.show_notes_panel()
     -- Store the current file_path and line for the panel
     M.panel_file_path = file_path
     M.panel_line = current_line
-    
-    -- Add keymappings for saving changes
-    vim.api.nvim_buf_set_keymap(M.panel_bufnr, 'n', '<Leader>as', 
-      '<cmd>lua require("audit").sync_panel_changes()<CR>', 
-      { noremap = true, silent = true, desc = "Save note changes" })
-    
-    -- Map the common write command to our sync function instead
-    vim.api.nvim_buf_set_keymap(M.panel_bufnr, 'n', ':w<CR>', 
-      '<cmd>lua require("audit").sync_panel_changes()<CR>', 
-      { noremap = true, silent = true })
   else
     -- Update stored file path and line
     M.panel_file_path = file_path
