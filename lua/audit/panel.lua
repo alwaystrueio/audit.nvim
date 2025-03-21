@@ -313,6 +313,35 @@ function M.setup_autocmds()
       end
     end
   })
+  
+  -- Detect when the panel becomes the only buffer after a buffer is deleted
+  vim.api.nvim_create_autocmd('BufDelete', {
+    group = M.auto_panel_augroup,
+    callback = function(event)
+      -- Skip if the panel buffer is being deleted
+      if event.buf == M.panel_bufnr then
+        return
+      end
+      
+      -- Use vim.schedule to run after the current buffer is fully deleted
+      vim.schedule(function()
+        -- Count remaining buffers that are not the panel
+        local remaining_buffers = 0
+        for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+          if vim.api.nvim_buf_is_valid(buf) and 
+             vim.api.nvim_buf_get_option(buf, 'buflisted') and
+             buf ~= M.panel_bufnr then
+            remaining_buffers = remaining_buffers + 1
+          end
+        end
+        
+        -- If no other buffers remain, quit Neovim
+        if remaining_buffers == 0 and M.panel_bufnr and vim.api.nvim_buf_is_valid(M.panel_bufnr) then
+          vim.cmd('qa')
+        end
+      end)
+    end
+  })
 end
 
 return M 
