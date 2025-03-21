@@ -177,13 +177,54 @@ function M.show_notes_panel()
     local height = vim.api.nvim_win_get_height(current_winid)
     
     -- Open panel on the right
-    vim.cmd('vsplit')
+    vim.cmd('botright vsplit')
     M.panel_winid = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(M.panel_winid, M.panel_bufnr)
     vim.api.nvim_win_set_width(M.panel_winid, math.floor(width * 0.3))
     
     -- Go back to original window
     vim.api.nvim_set_current_win(current_winid)
+  end
+end
+
+-- Close notes panel
+function M.close_notes_panel()
+  if M.panel_winid and vim.api.nvim_win_is_valid(M.panel_winid) then
+    vim.api.nvim_win_close(M.panel_winid, true)
+    M.panel_winid = nil
+  end
+  
+  if M.panel_bufnr and vim.api.nvim_buf_is_valid(M.panel_bufnr) then
+    vim.api.nvim_buf_delete(M.panel_bufnr, { force = true })
+    M.panel_bufnr = nil
+  end
+end
+
+-- Toggle notes panel
+function M.toggle_notes_panel()
+  if M.panel_winid and vim.api.nvim_win_is_valid(M.panel_winid) then
+    M.close_notes_panel()
+    -- Disable auto-showing panel on cursor move
+    if M.auto_panel_augroup then
+      vim.api.nvim_del_augroup_by_id(M.auto_panel_augroup)
+      M.auto_panel_augroup = nil
+      vim.notify("Notes panel auto-display disabled")
+    end
+  else
+    -- Force show panel for current line
+    M.show_notes_panel()
+    -- Re-enable auto-showing panel on cursor move
+    if not M.auto_panel_augroup then
+      M.auto_panel_augroup = vim.api.nvim_create_augroup('AuditNotesPanel', { clear = true })
+      vim.api.nvim_create_autocmd('CursorMoved', {
+        group = M.auto_panel_augroup,
+        pattern = '*',
+        callback = function()
+          M.show_notes_panel()
+        end
+      })
+      vim.notify("Notes panel auto-display enabled")
+    end
   end
 end
 
@@ -263,6 +304,7 @@ function M.setup(opts)
   
   -- Set up commands
   vim.api.nvim_create_user_command('AuditAddNote', M.add_note, { range = true })
+  vim.api.nvim_create_user_command('AuditTogglePanel', M.toggle_notes_panel, {})
   
   -- Set up auto-commands
   local augroup = vim.api.nvim_create_augroup('AuditNotes', { clear = true })
@@ -275,8 +317,11 @@ function M.setup(opts)
     end
   })
   
+  -- Store auto panel augroup ID
+  M.auto_panel_augroup = vim.api.nvim_create_augroup('AuditNotesPanel', { clear = true })
+  
   vim.api.nvim_create_autocmd('CursorMoved', {
-    group = augroup,
+    group = M.auto_panel_augroup,
     pattern = '*',
     callback = function()
       M.show_notes_panel()

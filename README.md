@@ -36,6 +36,11 @@ Plug 'username/audit.nvim'
 3. Enter your note
 4. Notes will be saved to `notes.md` in your working directory
 
+### Commands
+
+- `:AuditAddNote` - Add a note for the selected text (visual mode only)
+- `:AuditTogglePanel` - Toggle the notes panel on/off and enable/disable automatic panel display
+
 ## Configuration
 
 The plugin works with default settings, but can be customized:
