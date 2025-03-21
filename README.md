@@ -15,7 +15,7 @@ A Neovim plugin that enables code auditors to take notes about the code they're 
     - [x] Add a "question" note when starting with `?`
     - [x] Add a "possible finding" note when starting with `!`
     - [x] Add an "info" note when starting with any other symbol
-- [ ] Somehow mark "reviewed" code
+- [x] Mark/unmark "reviewed" code
 - [ ] Generate structured joint notes
 - [ ] Generate Typst code from notes
 - [ ] Deal with sourcecode changes
