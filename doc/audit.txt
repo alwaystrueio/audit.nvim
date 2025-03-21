@@ -1,0 +1,35 @@
+*audit.txt*  Plugin for taking notes about code during audits
+
+==============================================================================
+INTRODUCTION                                           *audit*
+
+The audit.nvim plugin allows an auditor to take notes about the code they're 
+reviewing without modifying the source code. Notes are stored in a separate
+"notes.md" file and linked to the lines of code they refer to.
+
+==============================================================================
+USAGE                                                  *audit-usage*
+
+The plugin adds visual indicators to lines that have associated notes and
+provides a side panel that shows notes related to the current line.
+
+Commands:
+  :AuditAddNote                                        *:AuditAddNote*
+    Add a note for the currently selected text. This command is only 
+    available in visual mode.
+
+Key mappings:
+  <Leader>an                                           *audit-key-add-note*
+    In visual mode, adds a note for the selected text.
+
+==============================================================================
+FEATURES                                               *audit-features*
+
+1. Highlight a piece of code and take a note about it
+2. Store all notes in a separate "notes.md" file
+3. Link each note to the specific lines of code it refers to
+4. Display visual markers on lines that have notes
+5. Show notes in a panel on the right when cursor is on a line with notes
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl: 
