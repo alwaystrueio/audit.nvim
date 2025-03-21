@@ -79,10 +79,20 @@ function M.save_notes()
       local line_ref = (note.start_line + 1) .. "-" .. (note.end_line + 1)
       table.insert(lines, "### Note " .. i .. " (Lines " .. line_ref .. ")")
       table.insert(lines, "")
-      table.insert(lines, note.content)
+      
+      -- Split content into lines
+      for _, content_line in ipairs(vim.split(note.content, "\n")) do
+        table.insert(lines, content_line)
+      end
+      
       table.insert(lines, "")
       table.insert(lines, "```")
-      table.insert(lines, note.code)
+      
+      -- Split code into lines
+      for _, code_line in ipairs(vim.split(note.code, "\n")) do
+        table.insert(lines, code_line)
+      end
+      
       table.insert(lines, "```")
       table.insert(lines, "")
     end
