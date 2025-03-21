@@ -300,20 +300,6 @@ function M.setup_autocmds()
     end
   })
   
-  -- Handle :w in the panel buffer
-  vim.api.nvim_create_autocmd('BufWriteCmd', {
-    group = M.auto_panel_augroup,
-    callback = function(event)
-      if M.panel_bufnr and event.buf == M.panel_bufnr then
-        M.sync_panel_changes()
-        vim.notify("Audit Notes: Notes saved")
-        -- Mark the buffer as not modified to clear the 'modified' flag
-        vim.api.nvim_buf_set_option(M.panel_bufnr, 'modified', false)
-        return true -- Prevent the actual file write
-      end
-    end
-  })
-  
   -- Detect when the panel becomes the only buffer after a buffer is deleted
   vim.api.nvim_create_autocmd('BufDelete', {
     group = M.auto_panel_augroup,

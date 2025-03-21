@@ -4,12 +4,17 @@ A Neovim plugin that enables code auditors to take notes about the code they're 
 
 ## Features
 
-- Highlight code and add notes without changing the source
-- Store all notes in a separate "notes.md" file
-- Link notes to specific lines of code
-- Display visual indicators on lines with notes
-- Show relevant notes in a side panel when cursor is on a line with notes
-- Edit notes directly in the panel and save changes to the notes file
+- [x] Highlight code and add notes without changing the source
+- [x] Store all notes in a separate "notes.md" file
+- [x] Link notes to specific lines of code
+- [x] Display visual indicators on lines with notes
+- [x] Show relevant notes in a side panel when cursor is on a line with notes
+- [x] Edit notes directly in the panel and save changes to the notes file automatically
+- [x] Delete notes from the source code
+- [ ] Use different notes for different things
+    - [ ] Add a "question" note when starting with `?`
+    - [ ] Add a "possible finding" note when starting with `!`
+    - [x] Add an "info" note when starting with any other symbol
 
 ## Installation
 
