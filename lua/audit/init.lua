@@ -88,8 +88,8 @@ function M.setup(opts)
     group = augroup,
     pattern = '*',
     callback = function()
-      ui.mark_notes(0)
       ui.mark_reviewed(0)
+      ui.mark_notes(0)
     end
   })
   

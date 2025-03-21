@@ -12,6 +12,7 @@ function M.setup_highlights()
     highlight default link AuditNote Todo
     highlight default link AuditNoteHighlight CursorLine
     highlight default link AuditReviewed DiffAdd
+    highlight default link AuditNoteAndReviewed DiffAdd
   ]])
 end
 
@@ -40,8 +41,23 @@ function M.mark_notes(bufnr)
         virt_text_pos = "eol",
       })
       
-      -- Highlight the line
-      vim.api.nvim_buf_add_highlight(bufnr, M.ns_id, "AuditNoteHighlight", line, 0, -1)
+      -- Check if the line is already marked as reviewed
+      local is_reviewed = false
+      if core.reviewed[file_path] then
+        for _, section in ipairs(core.reviewed[file_path]) do
+          if line >= section.start_line and line <= section.end_line then
+            is_reviewed = true
+            break
+          end
+        end
+      end
+      
+      -- Apply appropriate highlight based on reviewed status
+      if is_reviewed then
+        vim.api.nvim_buf_add_highlight(bufnr, M.ns_id, "AuditNoteAndReviewed", line, 0, -1)
+      else
+        vim.api.nvim_buf_add_highlight(bufnr, M.ns_id, "AuditNoteHighlight", line, 0, -1)
+      end
     end
   end
 end
@@ -57,8 +73,22 @@ function M.mark_reviewed(bufnr)
   
   for _, section in ipairs(core.reviewed[file_path]) do
     for line = section.start_line, section.end_line do
-      -- Add highlight for reviewed line
-      vim.api.nvim_buf_add_highlight(bufnr, M.review_ns_id, "AuditReviewed", line, 0, -1)
+      -- Check if the line has a note
+      local has_note = false
+      if core.notes[file_path] then
+        for _, note in ipairs(core.notes[file_path]) do
+          if line >= note.start_line and line <= note.end_line then
+            has_note = true
+            break
+          end
+        end
+      end
+      
+      -- If the line has a note, we already applied the combined highlight in mark_notes
+      if not has_note then
+        -- Add highlight for reviewed line
+        vim.api.nvim_buf_add_highlight(bufnr, M.review_ns_id, "AuditReviewed", line, 0, -1)
+      end
     end
   end
 end
