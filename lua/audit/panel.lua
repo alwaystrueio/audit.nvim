@@ -105,11 +105,13 @@ function M.show_notes_panel()
     vim.api.nvim_win_set_option(M.panel_winid, 'relativenumber', false)
     vim.api.nvim_win_set_option(M.panel_winid, 'cursorline', true)
     vim.api.nvim_win_set_option(M.panel_winid, 'signcolumn', 'no')
+    vim.api.nvim_win_set_option(M.panel_winid, 'wrap', true)
+    vim.api.nvim_win_set_option(M.panel_winid, 'linebreak', true)
     
     -- Add some helpful instructions at the top
     local lines = vim.api.nvim_buf_get_lines(M.panel_bufnr, 0, 2, false)
     if lines[1] == "# Audit Notes Panel" then
-      vim.api.nvim_buf_set_lines(M.panel_bufnr, 1, 2, false, {"Edit notes directly in this panel. Changes will be synced when you run :AuditSyncNotes or leave the panel.", ""})
+      vim.api.nvim_buf_set_lines(M.panel_bufnr, 1, 2, false, {"Edit notes directly in this panel. Changes will be automatically synced.", ""})
     end
     
     -- Go back to original window
