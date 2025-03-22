@@ -1,6 +1,6 @@
 # audit.nvim
 
-A Neovim plugin that enables code auditors to take notes about the code they're reviewing without modifying the source code.
+A Neovim plugin that enables code auditors to take notes about the code they're reviewing without modifying the source code. Everything is saved in the `notes.md` file at the project's root.
 
 ## Features
 
@@ -72,20 +72,14 @@ vim.keymap.set('n', '<Leader>as', ':AuditSyncNotes<CR>', { noremap = true, silen
 
 You can edit notes directly in the notes panel:
 
-1. When a note is displayed in the panel, you can modify its content
-2. Save your changes using the `:AuditSyncNotes` command or your custom keybinding
+1. When a note is displayed in the panel, you can modify its content.
+2. When you leave the panel, the note is automatically updated. You can also explicitly save your changes using the `:AuditSyncNotes` command.
 
-Changes to notes are automatically saved to the notes.md file. Note that only the content of notes can be edited; the code snippets remain unchanged to preserve the original references.
+_Note that only the content of notes can be edited; the code snippets remain unchanged to preserve the original references._
 
 ## Configuration
 
-The plugin works with default settings, but can be customized:
-
-```lua
-require('audit').setup({
-  -- Future configuration options will be added here
-})
-```
+The plugin works with default settings that can't be configured at the moment.
 
 ## Notes Format
 
@@ -100,11 +94,5 @@ Notes are stored in a Markdown file with the following structure:
 
 This is a note about the code.
 
+<The actual code snippet>
 ```
-The actual code snippet
-```
-```
-
-## License
-
-MIT 
