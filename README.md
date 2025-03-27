@@ -26,7 +26,7 @@ Using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
 use {
-  'rober-m/audit.nvim',
+  'alwaystrueio/audit.nvim',
   config = function()
     require('audit').setup()
   end
@@ -36,7 +36,7 @@ use {
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```vim
-Plug 'rober-m/audit.nvim'
+Plug 'alwaystrueio/audit.nvim'
 ```
 
 ## Usage
