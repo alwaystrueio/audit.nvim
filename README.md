@@ -49,6 +49,7 @@ Plug 'alwaystrueio/audit.nvim'
 ### Commands
 
 - `:AuditAddNote` - Add a note for the selected text (visual mode only)
+- `:AuditAddProjectNote` - Add a project-wide note not tied to specific code
 - `:AuditTogglePanel` - Toggle the notes panel on/off and enable/disable automatic panel display
 - `:AuditSyncNotes` - Manually sync edited notes from the panel to the notes.md file
 

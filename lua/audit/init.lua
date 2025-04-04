@@ -17,6 +17,7 @@ M.show_notes_panel = panel.show_notes_panel
 M.sync_panel_changes = panel.sync_panel_changes
 M.close_notes_panel = panel.close_notes_panel
 M.toggle_notes_panel = panel.toggle_notes_panel
+M.add_project_note = core.add_project_note
 
 -- Setup function
 function M.setup(opts)
@@ -77,6 +78,7 @@ function M.setup(opts)
   end, { nargs = '?' })
   vim.api.nvim_create_user_command('AuditTogglePanel', panel.toggle_notes_panel, {})
   vim.api.nvim_create_user_command('AuditSyncNotes', panel.sync_panel_changes, {})
+  vim.api.nvim_create_user_command('AuditAddProjectNote', core.add_project_note, {})
   
   -- Flag to track if auto panel display is enabled
   panel.auto_panel_enabled = true

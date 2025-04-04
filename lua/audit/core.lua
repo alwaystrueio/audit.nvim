@@ -4,6 +4,8 @@ local M = {}
 M.notes = {}
 -- Storage for reviewed sections
 M.reviewed = {}
+-- Storage for project-wide notes
+M.project_notes = {}
 
 -- Utility function to get current buffer's relative path
 function M.get_buffer_path()
@@ -149,7 +151,24 @@ end
 function M.save_notes()
   local lines = {"# Audit Notes", ""}
   
-  -- Save notes
+  -- Save project notes first
+  if #M.project_notes > 0 then
+    table.insert(lines, "## Project Notes")
+    table.insert(lines, "")
+    
+    for i, note in ipairs(M.project_notes) do
+      table.insert(lines, "### Note " .. i)
+      table.insert(lines, "")
+      
+      -- Split content into lines
+      for _, content_line in ipairs(vim.split(note.content, "\n")) do
+        table.insert(lines, content_line)
+      end
+      table.insert(lines, "")
+    end
+  end
+  
+  -- Save file-specific notes
   for file, file_notes in pairs(M.notes) do
     table.insert(lines, "## " .. file)
     table.insert(lines, "")
@@ -232,6 +251,7 @@ function M.load_notes()
   local code_block = false
   local code_content = {}
   local in_reviewed_section = false
+  local in_project_notes = false
   
   for _, line in ipairs(content) do
     if line == "# Reviewed Sections" then
@@ -301,6 +321,28 @@ function M.load_notes()
       end
       
       current_section = "after_note"
+    elseif line == "## Project Notes" then
+      in_project_notes = true
+      current_file = nil
+    elseif in_project_notes and line:match("^### Note (%d+)") then
+      current_note = {
+        content = "",
+        type = "note"
+      }
+      current_section = "note"
+    elseif in_project_notes and current_note and current_section == "note" and line ~= "" then
+      current_note.content = line
+      
+      -- Determine note type based on first character
+      if line:sub(1, 1) == "?" then
+        current_note.type = "question"
+      elseif line:sub(1, 1) == "!" then
+        current_note.type = "finding"
+      end
+      
+      table.insert(M.project_notes, current_note)
+      current_note = nil
+      current_section = nil
     end
   end
 end
@@ -351,6 +393,37 @@ function M.delete_note(note_id)
   require('audit.ui').mark_notes(0)
   
   vim.notify("Note " .. note_id .. " deleted")
+end
+
+-- Add a project-wide note
+function M.add_project_note()
+  vim.ui.input({
+    prompt = "Enter project note: ",
+  }, function(input)
+    if not input or input == "" then
+      return
+    end
+    
+    -- Determine note type based on first character
+    local note_type = "note"
+    if input:sub(1, 1) == "?" then
+      note_type = "question"
+    elseif input:sub(1, 1) == "!" then
+      note_type = "finding"
+    end
+    
+    -- Add note to project notes
+    table.insert(M.project_notes, {
+      content = input,
+      type = note_type,
+      timestamp = os.time()
+    })
+    
+    -- Save notes to file
+    M.save_notes()
+    
+    vim.notify("Project note added")
+  end)
 end
 
 return M 

@@ -26,6 +26,10 @@ Commands:
       - Show a selection menu if there are multiple notes at the cursor line
       - Display a warning if no notes are found at the cursor line
 
+  :AuditAddProjectNote                                *:AuditAddProjectNote*
+    Add a project-wide note that is not tied to specific lines of code.
+    These notes are useful for general observations about the project.
+
 Key mappings:
   <Leader>an                                           *audit-key-add-note*
     In visual mode, adds a note for the selected text.
